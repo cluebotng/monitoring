@@ -1,0 +1,15 @@
+[project]
+name = "monitoring"
+version = "1.0"
+requires-python = ">=3.13"
+dependencies = [
+    "click",
+    "PyYaml",
+    "prometheus-client",
+    "fastapi[standard]",
+    "aiohttp",
+]
+
+[tool.poetry.build]
+generate-setup-file = false
+script = "setup.py"

@@ -4,6 +4,8 @@ version = "1.0"
 requires-python = ">=3.13"
 dependencies = [
     "click",
+    "requests",
+    "fastapi[standard]",
     "PyYaml",
 ]
 

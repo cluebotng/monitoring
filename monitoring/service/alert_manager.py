@@ -13,6 +13,8 @@ class AlertManager:
     configuration_path = PosixPath("/tmp/alertmanager.yml")
 
     def generate_configuration(self) -> str:
+        send_alerts_to = os.environ.get("MONITORING_SEND_ALERTS_TO")
+
         config = {
             "templates": [],
             "global": {
@@ -24,19 +26,61 @@ class AlertManager:
                 "group_wait": "30s",
                 "group_interval": "5m",
                 "repeat_interval": "12h",
-                "receiver": "damian",
+                "receiver": "email_contacts",
+                "routes": [
+                    {
+                        "receiver": "wiki-updater",
+                        "group_wait": "1m",
+                        "matchers": [
+                            "update_wiki_host=~.+",
+                            "update_wiki_page=~.+",
+                        ],
+                    }
+                ],
             },
             "receivers": [
                 {
-                    "name": "damian",
-                    "email_configs": [
-                        {"to": email_address}
-                        for email_address in json.loads(os.environ.get("MONITORING_SEND_ALERTS_TO", "[]"))
+                    "name": "wiki-updater",
+                    "webhook_configs": [
+                        {
+                            "send_resolved": True,
+                            "url": "http://wiki-update-receiver/alertmanager",
+                        }
                     ],
+                },
+            ],
+        }
+
+        # Calculate receivers
+        email_contacts = {
+            "name": "email_contacts",
+        }
+        wiki_updater = {
+            "name": "wiki-updater",
+            "webhook_configs": [
+                {
+                    "send_resolved": True,
+                    "url": "http://wiki-update-receiver:8900/alertmanager",
                 }
             ],
         }
 
+        if send_alerts_to:
+            # Email
+            email_configs = [
+                {"to": email_address} for email_address in json.loads(send_alerts_to)
+            ]
+            email_contacts["email_configs"] = email_configs
+            wiki_updater["email_configs"] = email_configs
+        else:
+            # Placeholder
+            email_contacts["webhook_configs"] = [
+                {"send_resolved": False, "url": "http://invalid.host"}
+            ]
+
+        config["receivers"] = [email_contacts, wiki_updater]
+
+        # Include any template files
         if template_files := [
             path.absolute().as_posix()
             for path in (self.files_path / "template").glob("*.tmpl")

@@ -5,12 +5,14 @@ from pathlib import PosixPath
 
 import yaml
 
+from monitoring.helpers import get_persistent_data_directory
+
 
 class Grafana:
     home_path = PosixPath("/workspace/grafana")
     binary_path = PosixPath("/workspace/grafana/bin/grafana")
     configuration_path = PosixPath("/tmp/grafana.ini")
-    provisioning_path = PosixPath("/tmp/grafana-provisioning.yml")
+    persistent_path = get_persistent_data_directory("grafana")
 
     def generate_grafana_configuration(self) -> str:
         tools_db_user = os.environ.get("TOOL_TOOLSDB_USER")
@@ -31,9 +33,6 @@ class Grafana:
             "max_idle_conn": 0,
             "conn_max_lifetime": 0,
         }
-        config["[paths]"] = {
-            "provisioning": self.provisioning_path.as_posix(),
-        }
         config["[users]"] = {
             "allow_sign_up": False,
         }
@@ -42,6 +41,12 @@ class Grafana:
             "hide_version": True,
             "org_name": "Main Org.",
             "org_role": "Viewer",
+        }
+
+        config["paths"] = {
+            "data": (self.persistent_path / "data").as_posix(),
+            "plugins": (self.persistent_path / "plugins").as_posix(),
+            "provisioning": (self.persistent_path / "provisioning").as_posix(),
         }
 
         with io.StringIO() as fh:
@@ -53,6 +58,7 @@ class Grafana:
         return yaml.dump(
             {
                 "apiVersion": 1,
+                "prune": True,
                 "datasources": [
                     {
                         "name": "Prometheus",
@@ -76,7 +82,9 @@ class Grafana:
         with self.configuration_path.open("w") as fh:
             fh.write(self.generate_grafana_configuration())
 
-        with self.provisioning_path.open("w") as fh:
+        provisioning_dir = self.persistent_path / "provisioning"
+        provisioning_dir.mkdir(exist_ok=True)
+        with (provisioning_dir / "datasources.yaml").open("w") as fh:
             fh.write(self.generate_provisioning_configuration())
 
     def execute(self) -> None:

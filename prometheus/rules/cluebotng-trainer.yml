@@ -1,0 +1,8 @@
+groups:
+  - name: ClueBot NG Training Data
+    rules:
+      - alert: TrainingDataDown
+        expr: probe_success{instance="cluebotng-trainer.toolforge.org"} == 0
+        for: 2m
+        annotations:
+          summary: Training Data File API Is Down

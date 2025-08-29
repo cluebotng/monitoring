@@ -6,4 +6,3 @@ groups:
         for: 2m
         annotations:
           summary: Report Interface Is Down
-          description: https://cluebotng.toolforge.org is not returning a 200 OK

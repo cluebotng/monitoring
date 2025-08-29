@@ -1,0 +1,8 @@
+groups:
+  - name: ClueBot NG Review Interface
+    rules:
+      - alert: ReviewInterfaceDown
+        expr: probe_success{instance="cluebotng-review.toolforge.org"} == 0
+        for: 2m
+        annotations:
+          summary: Review Interface Is Down

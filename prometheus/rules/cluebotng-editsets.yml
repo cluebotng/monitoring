@@ -1,0 +1,8 @@
+groups:
+  - name: ClueBot NG Edit Sets
+    rules:
+      - alert: EditSetsEndpointDown
+        expr: probe_success{instance="cluebotng-editsets.toolforge.org/"} == 0
+        for: 2m
+        annotations:
+          summary: Edit Sets Endpoint Is Down

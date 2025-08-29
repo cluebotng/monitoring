@@ -1,0 +1,14 @@
+groups:
+  - name: ClueBot NG
+    rules:
+      - alert: BotNotEditedRecently
+        expr: time() - cbng_monitoring_last_user_contribution_time{username="ClueBot NG", domain="en.wikipedia.org"} > 900
+        for: 5m
+        annotations:
+          summary: ClueBot NG has not edited for > 15min
+
+      - alert: BotHasLowEditCount
+        expr: cbng_monitoring_recent_user_contributions_count{username="ClueBot NG", domain="en.wikipedia.org"} < 20000
+        for: 5m
+        annotations:
+          summary: ClueBot NG has made less than 20k edits in the last 24 hours

@@ -124,5 +124,7 @@ class Prometheus:
                 self.configuration_path.as_posix(),
                 "--storage.tsdb.path",
                 get_persistent_data_directory("prometheus").as_posix(),
+                "--storage.tsdb.retention.time",
+                "90d",
             ],
         )

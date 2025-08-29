@@ -7,7 +7,7 @@ from monitoring.helpers import get_persistent_data_directory
 
 
 class Prometheus:
-    files_path = PosixPath(__file__).parent.parent / "prometheus"
+    files_path = PosixPath(__file__).parent.parent.parent / "prometheus"
     binary_path = PosixPath("/workspace/bin/prometheus")
     configuration_path = PosixPath("/tmp/prometheus.yml")
 

@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import PosixPath
 
@@ -29,9 +30,8 @@ class AlertManager:
                 {
                     "name": "damian",
                     "email_configs": [
-                        {
-                            "to": "damian+cluebotng.alerts@damianzaremba.co.uk",
-                        }
+                        {"to": email_address}
+                        for email_address in json.loads(os.environ.get("MONITORING_SEND_ALERTS_TO", "[]"))
                     ],
                 }
             ],

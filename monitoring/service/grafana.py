@@ -33,10 +33,10 @@ class Grafana:
             "max_idle_conn": 0,
             "conn_max_lifetime": 0,
         }
-        config["[users]"] = {
+        config["users"] = {
             "allow_sign_up": False,
         }
-        config["[auth.anonymous]"] = {
+        config["auth.anonymous"] = {
             "enabled": True,
             "hide_version": True,
             "org_name": "Main Org.",

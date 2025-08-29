@@ -14,7 +14,7 @@ class BlackboxExporter:
                 "http_2xx": {
                     "prober": "http",
                     "http": {
-                        "method": "GET",
+                        "preferred_ip_protocol": "ip4",  # No IPv6 in containers :(
                     },
                 }
             }
@@ -31,5 +31,7 @@ class BlackboxExporter:
             [
                 self.binary_path.as_posix(),
                 f"--config.file={self.configuration_path.as_posix()}",
+                "--log.level=debug",
+                "--log.prober=debug",
             ],
         )

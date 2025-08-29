@@ -6,6 +6,8 @@ groups:
         for: 5m
         annotations:
           summary: ClueBot III has not edited for > 12 hours
+          update_wiki_host: en.wikipedia.org
+          update_wiki_page: User:ClueBot_III/running
 
       - alert: BotHasLowEditCount
         expr: cbng_monitoring_recent_user_contributions_count{username="ClueBot III", domain="en.wikipedia.org"} < 50000

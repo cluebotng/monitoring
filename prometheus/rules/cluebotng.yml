@@ -6,6 +6,8 @@ groups:
         for: 5m
         annotations:
           summary: ClueBot NG has not edited for > 1 hour
+          update_wiki_host: en.wikipedia.org
+          update_wiki_page: User:ClueBot_NG/running
 
       - alert: BotHasLowEditCount
         expr: cbng_monitoring_recent_user_contributions_count{username="ClueBot NG", domain="en.wikipedia.org"} < 20000

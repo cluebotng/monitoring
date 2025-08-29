@@ -3,14 +3,16 @@ import io
 import os
 from pathlib import PosixPath
 
+import yaml
+
 
 class Grafana:
     home_path = PosixPath("/workspace/grafana")
     binary_path = PosixPath("/workspace/grafana/bin/grafana")
     configuration_path = PosixPath("/tmp/grafana.ini")
-    provisioning_path = PosixPath("/tmp/grafana-provisioning.ini")
+    provisioning_path = PosixPath("/tmp/grafana-provisioning.yml")
 
-    def generate_configuration(self) -> str:
+    def generate_grafana_configuration(self) -> str:
         tools_db_user = os.environ.get("TOOL_TOOLSDB_USER")
         if not tools_db_user:
             raise RuntimeError("Missing TOOL_TOOLSDB_USER")
@@ -44,11 +46,38 @@ class Grafana:
 
         with io.StringIO() as fh:
             config.write(fh)
+            fh.seek(0)
             return fh.read()
+
+    def generate_provisioning_configuration(self) -> str:
+        return yaml.dump(
+            {
+                "apiVersion": 1,
+                "datasources": [
+                    {
+                        "name": "Prometheus",
+                        "type": "prometheus",
+                        "access": "proxy",
+                        "url": "http://prometheus:9090",
+                        "isDefault": True,
+                    },
+                    {
+                        "name": "Alertmanager",
+                        "type": "alertmanager",
+                        "access": "proxy",
+                        "url": "http://alertmanager:9093",
+                        "isDefault": True,
+                    },
+                ],
+            }
+        )
 
     def write_configuration(self) -> None:
         with self.configuration_path.open("w") as fh:
-            fh.write(self.generate_configuration())
+            fh.write(self.generate_grafana_configuration())
+
+        with self.provisioning_path.open("w") as fh:
+            fh.write(self.generate_provisioning_configuration())
 
     def execute(self) -> None:
         return os.execv(

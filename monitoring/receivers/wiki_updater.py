@@ -1,15 +1,22 @@
 import logging
 import os
+import sys
 from typing import List, Dict, Optional
 
 import requests
 from fastapi import FastAPI
 from pydantic import BaseModel
 
-logger = logging.getLogger(__name__)
-app = FastAPI()
 RUNNING_TEXT = "Running"
 NOT_RUNNING_TEXT = "Not Running"
+
+logging.basicConfig(
+    level=logging.INFO,
+    stream=sys.stderr,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+)
+logger = logging.getLogger(__name__)
+app = FastAPI()
 
 
 # Define models for better type safety
@@ -128,12 +135,16 @@ class Wikipedia:
             return False
 
         expected_text = RUNNING_TEXT if running else NOT_RUNNING_TEXT
-        return r.text.strip() != expected_text
+        return not r.text.strip().startswith(expected_text)
 
-    def update_page(self, running: bool) -> bool:
+    def update_page(self, running: bool, info: Optional[str]) -> bool:
         csrf_token = self._get_csrf_token()
         if not csrf_token:
             return False
+
+        text = RUNNING_TEXT if running else NOT_RUNNING_TEXT
+        if info:
+            text = f"{text}: {info}"
 
         r = self._session.post(
             f"https://{self.host}/w/api.php",
@@ -146,7 +157,7 @@ class Wikipedia:
                 "format": "json",
                 "assert": "user",
                 "title": self.page,
-                "text": RUNNING_TEXT if running else NOT_RUNNING_TEXT,
+                "text": text,
                 "summary": "Updating status from alerts",
             },
         )
@@ -162,12 +173,27 @@ class Wikipedia:
 
 @app.post("/alertmanager")
 async def alertmanager(payload: WebhookPayload):
+    logger.info(f"Received: {payload}")
     for alert in payload.alerts:
         wiki_host = alert.labels.get("update_wiki_host")
-        wiki_page = alert.labels.get("update_wiki_page")
-        if not wiki_host or wiki_page:
-            logger.info(f"Missing annotations for alert: {alert}")
+        if not wiki_host:
+            logger.info(
+                f"Skipping alert due to missing update_wiki_host label: {alert}"
+            )
             continue
+
+        wiki_page = alert.labels.get("update_wiki_page")
+        if not wiki_page:
+            logger.info(
+                f"Skipping alert due to missing update_wiki_page label: {alert}"
+            )
+            continue
+
+        is_running = alert.status == "resolved"
+        info = None if is_running else alert.annotations.get("summary")
+        logger.info(
+            f"Found configuration {wiki_host}/{wiki_page} [{is_running}] ({info})"
+        )
 
         wikipedia = Wikipedia(
             wiki_host,
@@ -175,16 +201,15 @@ async def alertmanager(payload: WebhookPayload):
             os.environ.get("WIKI_UPDATER_USERNAME"),
             os.environ.get("WIKI_UPDATER_PASSWORD"),
         )
-        is_running = alert.status == "resolved"
         if wikipedia.page_requires_updating(is_running):
             logger.info(f"Updating {wiki_host}/{wiki_page} -> {is_running}")
-            if not wikipedia.update_page(is_running):
+            if not wikipedia.update_page(is_running, info):
                 logger.error(
                     f"Failed to update {wiki_host}/{wiki_page} -> {is_running}"
                 )
         else:
             logger.info(
-                f"Page does not require update {wiki_host}/{wiki_page} ({is_running}"
+                f"Page does not require update {wiki_host}/{wiki_page} ({is_running})"
             )
 
     return "OK"

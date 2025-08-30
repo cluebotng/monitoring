@@ -38,17 +38,7 @@ class AlertManager:
                     }
                 ],
             },
-            "receivers": [
-                {
-                    "name": "wiki-updater",
-                    "webhook_configs": [
-                        {
-                            "send_resolved": True,
-                            "url": "http://wiki-update-receiver/alertmanager",
-                        }
-                    ],
-                },
-            ],
+            "receivers": [],
         }
 
         # Calculate receivers
@@ -68,7 +58,8 @@ class AlertManager:
         if send_alerts_to:
             # Email
             email_configs = [
-                {"to": email_address} for email_address in send_alerts_to
+                {"send_resolved": True, "to": email_address}
+                for email_address in send_alerts_to
             ]
             email_contacts["email_configs"] = email_configs
             wiki_updater["email_configs"] = email_configs

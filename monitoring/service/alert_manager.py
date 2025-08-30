@@ -13,7 +13,7 @@ class AlertManager:
     configuration_path = PosixPath("/tmp/alertmanager.yml")
 
     def generate_configuration(self) -> str:
-        send_alerts_to = os.environ.get("MONITORING_SEND_ALERTS_TO")
+        send_alerts_to = json.loads(os.environ.get("MONITORING_SEND_ALERTS_TO", "[]"))
 
         config = {
             "templates": [],
@@ -68,7 +68,7 @@ class AlertManager:
         if send_alerts_to:
             # Email
             email_configs = [
-                {"to": email_address} for email_address in json.loads(send_alerts_to)
+                {"to": email_address} for email_address in send_alerts_to
             ]
             email_contacts["email_configs"] = email_configs
             wiki_updater["email_configs"] = email_configs
@@ -102,5 +102,6 @@ class AlertManager:
                 self.configuration_path.as_posix(),
                 "--storage.path",
                 get_persistent_data_directory("alert-manager").as_posix(),
+                "--log.level=debug",
             ],
         )

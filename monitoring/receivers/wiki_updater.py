@@ -163,9 +163,9 @@ class Wikipedia:
 @app.post("/alertmanager")
 async def alertmanager(payload: WebhookPayload):
     for alert in payload.alerts:
-        wiki_host = alert.annotations.get("update_wiki_host")
-        wiki_page = alert.annotations.get("update_wiki_page")
-        if not wiki_host and wiki_page:
+        wiki_host = alert.labels.get("update_wiki_host")
+        wiki_page = alert.labels.get("update_wiki_page")
+        if not wiki_host or wiki_page:
             logger.info(f"Missing annotations for alert: {alert}")
             continue
 

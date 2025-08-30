@@ -4,13 +4,20 @@ groups:
       - alert: BotNotEditedRecently
         expr: time() - cbng_monitoring_last_user_contribution_time{username="ClueBot NG", domain="en.wikipedia.org"} > 43200
         for: 5m
-        annotations:
-          summary: ClueBot III has not edited for > 12 hours
+        labels:
           update_wiki_host: en.wikipedia.org
           update_wiki_page: User:ClueBot_III/running
+        annotations:
+          summary: ClueBot III has not edited for > 12 hours
 
       - alert: BotHasLowEditCount
         expr: cbng_monitoring_recent_user_contributions_count{username="ClueBot III", domain="en.wikipedia.org"} < 50000
         for: 5m
         annotations:
           summary: ClueBot III has made less than 50k edits in the last 24 hours
+
+      - alert: BotHasBeenAdminDisabled
+        expr: cbng_monitoring_bot_administrator_allow_run{username="ClueBot III", domain="en.wikipedia.org"} 0
+        for: 5m
+        annotations:
+          summary: ClueBot III has been disabled via User:ClueBot_III/Run

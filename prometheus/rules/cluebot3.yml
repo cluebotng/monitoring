@@ -17,7 +17,7 @@ groups:
           summary: ClueBot III has made less than 50k edits in the last 24 hours
 
       - alert: BotHasBeenAdminDisabled
-        expr: cbng_monitoring_bot_administrator_allow_run{username="ClueBot III", domain="en.wikipedia.org"} 0
+        expr: cbng_monitoring_bot_administrator_allow_run{username="ClueBot III", domain="en.wikipedia.org"} == 0
         for: 5m
         annotations:
           summary: ClueBot III has been disabled via User:ClueBot_III/Run

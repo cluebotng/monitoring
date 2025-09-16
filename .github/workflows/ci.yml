@@ -1,13 +1,46 @@
 name: CI
-on: { pull_request: { }, push: { branches: [ main ] } }
+on: { pull_request: { } }
 jobs:
-  container:
+  setup:
+    runs-on: ubuntu-latest
+    outputs:
+      prometheus_rules: ${{ steps.find_files.outputs.prometheus_rules }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: find_files
+        run: |
+          prometheus_rules=$(
+            find prometheus/rules -iname '*.yml' -type f -exec basename {} \; | \
+            jq -Rnc '[inputs | sub("\\.yml$"; "")]'
+          )
+          echo "prometheus_rules=${prometheus_rules}" >> $GITHUB_OUTPUT
+
+  build-container:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Build container
-        run: |
+      - run: |
           docker run \
             -v /var/run/docker.sock:/var/run/docker.sock \
             -v $PWD:/workspace -w /workspace \
             buildpacksio/pack build --builder heroku/builder:24 monitoring-stack
+
+  lint-prometheus-rules:
+    runs-on: ubuntu-latest
+    needs: [setup]
+    strategy:
+      fail-fast: false
+      matrix:
+        target: ${{ fromJson(needs.setup.outputs.prometheus_rules) }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          docker run \
+            -v $PWD:/mnt \
+            -w /mnt/prometheus/rules \
+            --entrypoint=promtool \
+            prom/prometheus \
+            check rules \
+            --lint=all \
+            --lint-fatal \
+            ${{ matrix.target }}.yml

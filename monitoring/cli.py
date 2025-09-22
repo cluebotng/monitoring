@@ -4,7 +4,6 @@ import sys
 
 import click
 
-from monitoring.maintenance.network_policies import NetworkPolicies
 from monitoring.service.alert_manager import AlertManager
 from monitoring.service.blackbox_exporter import BlackboxExporter
 from monitoring.service.grafana import Grafana
@@ -22,9 +21,6 @@ def cli():
 
 @cli.command()
 def prometheus():
-    network_policies = NetworkPolicies()
-    network_policies.apply()
-
     service = Prometheus()
     service.write_configuration()
     service.execute()

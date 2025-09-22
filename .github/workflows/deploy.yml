@@ -1,7 +1,7 @@
 name: Deploy
 on: { push: { tags: [ 'v*' ] } }
 jobs:
-  deploy:
+  update-components:
     runs-on: ubuntu-latest
     steps:
       - uses: cluebotng/ci-update-component-ref@main
@@ -10,12 +10,3 @@ jobs:
           component: 'prometheus'
           ref: '${{ github.ref }}'
           gh_app_key: '${{ secrets.CI_COMPONENT_CONFIGS_APP_KEY }}'
-
-  webservice:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: cluebotng/ci-execute-fabric@main
-        with:
-          task: setup-webservice
-          ssh_key: ${{ secrets.CI_SSH_KEY }}

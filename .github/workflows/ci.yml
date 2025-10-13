@@ -6,7 +6,7 @@ jobs:
     outputs:
       prometheus_rules: ${{ steps.find_files.outputs.prometheus_rules }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - id: find_files
         run: |
           prometheus_rules=$(
@@ -18,7 +18,7 @@ jobs:
   build-container:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: |
           docker run \
             -v /var/run/docker.sock:/var/run/docker.sock \
@@ -33,7 +33,7 @@ jobs:
       matrix:
         target: ${{ fromJson(needs.setup.outputs.prometheus_rules) }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: |
           docker run \
             -v $PWD:/mnt \

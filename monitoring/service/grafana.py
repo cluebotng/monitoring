@@ -12,7 +12,6 @@ class Grafana:
     home_path = PosixPath("/workspace/grafana")
     binary_path = PosixPath("/workspace/grafana/bin/grafana")
     configuration_path = PosixPath("/tmp/grafana.ini")
-    persistent_path = get_persistent_data_directory("grafana")
 
     def generate_grafana_configuration(self) -> str:
         tools_db_user = os.environ.get("TOOL_TOOLSDB_USER")
@@ -43,10 +42,11 @@ class Grafana:
             "org_role": "Viewer",
         }
 
+        persistent_path = get_persistent_data_directory("grafana")
         config["paths"] = {
-            "data": (self.persistent_path / "data").as_posix(),
-            "plugins": (self.persistent_path / "plugins").as_posix(),
-            "provisioning": (self.persistent_path / "provisioning").as_posix(),
+            "data": (persistent_path / "data").as_posix(),
+            "plugins": (persistent_path / "plugins").as_posix(),
+            "provisioning": (persistent_path / "provisioning").as_posix(),
         }
 
         with io.StringIO() as fh:
@@ -82,7 +82,8 @@ class Grafana:
         with self.configuration_path.open("w") as fh:
             fh.write(self.generate_grafana_configuration())
 
-        provisioning_dir = self.persistent_path / "provisioning"
+        persistent_path = get_persistent_data_directory("grafana")
+        provisioning_dir = persistent_path / "provisioning"
         provisioning_dir.mkdir(exist_ok=True)
         with (provisioning_dir / "datasources.yaml").open("w") as fh:
             fh.write(self.generate_provisioning_configuration())

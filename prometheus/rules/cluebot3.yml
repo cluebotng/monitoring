@@ -11,10 +11,10 @@ groups:
           summary: ClueBot III has not edited for > 12 hours
 
       - alert: BotHasLowEditCount
-        expr: cbng_monitoring_recent_user_contributions_count{username="ClueBot III", domain="en.wikipedia.org"} < 50000
+        expr: cbng_monitoring_recent_user_contributions_count{username="ClueBot III", domain="en.wikipedia.org"} < 200
         for: 5m
         annotations:
-          summary: ClueBot III has made less than 50k edits in the last 24 hours
+          summary: ClueBot III has made less than 200 edits in the last 24 hours
 
       - alert: BotHasBeenAdminDisabled
         expr: cbng_monitoring_bot_administrator_allow_run{username="ClueBot III", domain="en.wikipedia.org"} == 0
